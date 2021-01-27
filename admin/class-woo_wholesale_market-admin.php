@@ -181,7 +181,7 @@ class Woo_wholesale_market_Admin {
 				array(
 					'id'         => 'wocommerce_text_inventory_input_field',
 					'title'       => __( 'Set Quantity', 'woocommerce' ),
-					'type'        => 'text',
+					'type'        => 'number',
 					'label' => __( 'Address line 1', 'woocommerce' ),
 					'desc_tip' => __( 'This option is important as it will affect how you input prices. Changing it will not update existing products.', 'woocommerce' ),
 					'show'  => false,
@@ -293,6 +293,7 @@ class Woo_wholesale_market_Admin {
 		'desc_tip' => true,
 		'description' => __( 'Enter the wholesale price', 'ctwc' ),
 		'value'       => $value['ws_price'],
+		'min'         => '0',
 		);
 		woocommerce_wp_text_input( $args );
 	   }
@@ -721,25 +722,95 @@ class Woo_wholesale_market_Admin {
 		}
 		return $description;
 	}
+ 
+	/**
+	 * cart_recalculate_price
+	* function for changing cart price to wholesale price when qty condition acieved
+	* @version 1.0.0
+	* @since 1.0.0
+	* @return void
+	*/
+	function cart_recalculate_price() {	
+			global $woocommerce;
+			global $product;
+			$items = $woocommerce->cart->get_cart();
+			$key = get_option('woocommerce_cart_redirect_after_add', false)	;
+			if($key == 'yes'){
+			$key_key = get_option('woocommerce_prices_include_tax', false);
+			if($key_key == 'yes'){
+			foreach($items as $item => $values) { 
+				$product_type = $values['data']->get_type();
+				if($product_type == 'simple')
+				{
+					$id = $values['product_id'];
+					$_product =  wc_get_product( $values['data']->get_id()); 
+					$res = $values['quantity'];
+					$price = get_post_meta($values['product_id'] , '_price', true);
+					$result = get_post_meta($id, 'custom_price_qty_key', false);
+					foreach($result as $key=>$value)
+					{
+						$response = $value['ws_quantity'];
+						$val = $value['ws_price'];
+						if($res > $response)
+						{
+							$values['data']->set_price( floatval( $val) );
+						}			
+					}
+				}
+				
+			// 	else
+			// 	{	
+			// 		if($product_type == 'variable')
+			// 		{
+			// 			print_r("hello");
+			// 			$id = $values['product_id'];
+			// 			$_product =  wc_get_product( $values['data']->get_id()); 
+			// 			$res = $values['quantity'];
+			// 			// print_r($abc);
+			// 			$price = get_post_meta($values['product_id'] , '_price', true);
+			// 			$variation_price = get_post_meta($id, 'wholesale_custom_field', false);
+			// 			$variation_qty = get_post_meta($id, 'quantity_custom_field', false);
+			// 			print_r($variation_price);
+			// 	// wholesale price
+				
 
- function cart_recalculate_price() {		
-		global $woocommerce;
-		$items = $woocommerce->cart->get_cart();		
-        foreach($items as $item => $values) { 
-			$id = $values['product_id'];	
-            $_product =  wc_get_product( $values['data']->get_id()); 
-			$res = $values['quantity'];
-            $price = get_post_meta($values['product_id'] , '_price', true);
-			$result = get_post_meta($id, 'custom_price_qty_key', false);
-			foreach($result as $key=>$value){
-			$response = $value['ws_quantity'];
-			$val = $value['ws_price'];
-			if($res > $response)
-			{
-				$values['data']->set_price( floatval( $val) );
-			}		
+			// // 	foreach($result as $key=>$value){
+			// // 	$response = $value['ws_quantity'];
+			// // 	$val = $value['ws_price'];
+			// // 	if($res > $response)
+			// // 	{
+			// // 		$values['data']->set_price( floatval( $val) );
+			// // 	}			
+			// // }
+
+			// 		}
+			// }
 			}
-		} 
+		 }else{
+			 if($key_key == 'no')
+			foreach($items as $item => $values) { 
+				$product_type = $values['data']->get_type();
+				if($product_type == 'simple')
+				{
+					$id = $values['product_id'];
+					$_product =  wc_get_product( $values['data']->get_id()); 
+					$res = $values['quantity'];
+					$price = get_post_meta($values['product_id'] , '_price', true);
+					$result = get_post_meta($id, 'custom_price_qty_key', false);
+					$vari_qty = get_option('wocommerce_text_inventory_input_field', false);
+					foreach($result as $key=>$value)
+					{
+						$val = $value['ws_price'];
+						if($res > $vari_qty)
+						{
+							$values['data']->set_price( floatval( $val) );
+						}			
+					}
+				}
+				}
+
+		 }
+		}
 	}
 
 	

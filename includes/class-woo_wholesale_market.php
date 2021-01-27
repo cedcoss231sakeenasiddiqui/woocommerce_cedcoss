@@ -197,7 +197,9 @@ class Woo_wholesale_market {
 		// $this->loader->add_action('woocommerce_after_shop_loop_item_title', $plugin_admin, 'shop_loop_make_surplus_price_always_virtual', 9 );
 		$this->loader->add_action('woocommerce_available_variation', $plugin_admin, 'shop_loop_for_variation_product', 10, 3 );
 		$this->loader->add_action( 'woocommerce_before_calculate_totals', $plugin_admin, 'cart_recalculate_price' );
+  
 
+		// $this->loader->add_action('woocommerce_before_cart', $plugin_admin, 'cart_recalculate_price');
 	}
 
 	/**
